@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ทิ้งให้ถูกถัง</title>
+<meta name="description" content="เรียนรู้การคัดแยกขยะ 4 สีของไทย สะสมแต้ม และร่วมอัปโหลดรูปขยะ">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#1d2a22;--mut:#5d6b62;--line:#ddd9cc;--btn:#1d2a22;--btnink:#fff;
+--green:#2f9e5b;--yellow:#e6b422;--blue:#2b6cb0;--red:#c8392f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a15;--card:#1b261f;--ink:#eaf1ec;--mut:#9fb0a5;--line:#2c3b31;--btn:#eaf1ec;--btnink:#121a15}}
+:root[data-theme="dark"]{--bg:#121a15;--card:#1b261f;--ink:#eaf1ec;--mut:#9fb0a5;--line:#2c3b31;--btn:#eaf1ec;--btnink:#121a15}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 "Sarabun",system-ui,sans-serif}
+h1,h2,.pts{font-family:"Prompt","Sarabun",system-ui,sans-serif;font-weight:600;margin:0}
+main{max-width:620px;margin:0 auto;padding:20px 18px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+h1{font-size:26px}
+.score{text-align:right;line-height:1.2}
+.pts{font-size:24px}
+.lv{font-size:14px;color:var(--mut)}
+.bar{height:6px;background:var(--line);border-radius:6px;margin:10px 0 22px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);transition:width .4s}
+.bins{display:flex;gap:8px;margin-bottom:22px}
+.bins div{flex:1;border-radius:10px 10px 6px 6px;padding:8px 4px 6px;text-align:center;color:#fff;font-size:13px;line-height:1.25;border-top:6px solid rgba(0,0,0,.25)}
+.bins b{display:block;font-size:14px}
+.g{background:var(--green)}.y{background:var(--yellow);color:#2a2200!important}.b{background:var(--blue)}.r{background:var(--red)}
+h2{font-size:18px;margin:22px 0 10px}
+.photo{display:flex;gap:12px;align-items:center}
+.photo img{width:72px;height:72px;object-fit:cover;border-radius:10px;display:none;border:1px solid var(--line)}
+.btn{font:600 16px "Sarabun",sans-serif;padding:11px 18px;border-radius:10px;border:2px solid var(--btn);background:transparent;color:var(--ink);cursor:pointer}
+.btn.fill{background:var(--btn);color:var(--btnink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.item{font:inherit;text-align:left;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:48px}
+.item[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.res{margin-top:20px;border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+.res[hidden]{display:none}
+.res .head{padding:16px 18px;color:#fff}
+.res .head.y{color:#2a2200}
+.res .head small{display:block;font-size:14px;opacity:.9}
+.res .head strong{font-family:"Prompt",sans-serif;font-size:24px}
+.res .body{padding:14px 18px 18px}
+.res p{margin:0 0 10px}
+.tip{color:var(--mut)}
+.msg{margin-top:12px;font-weight:600;color:var(--green);min-height:1.6em}
+.note{margin-top:28px;font-size:14px;color:var(--mut)}
+select,.field{font:inherit;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);width:100%;margin-bottom:10px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:12px}
+.gal figure{margin:0;font-size:12px;line-height:1.3;color:var(--mut)}
+.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;border:1px solid var(--line)}
+.board{margin:0;padding-left:22px}
+.board li{margin-bottom:2px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.btn[disabled]{opacity:.5;cursor:default}
+.authbtns{display:flex;flex-wrap:wrap;gap:8px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <h1>ทิ้งให้ถูกถัง</h1>
+  <div class="score"><div class="pts"><span id="pts">0</span> แต้ม</div><div class="lv" id="lv"></div></div>
+</div>
+<div class="box" id="auth" style="margin:0 0 18px">
+  <div id="out">
+    <p style="margin:0 0 8px">เข้าสู่ระบบเพื่อเก็บแต้มและอัปโหลดรูป</p>
+    <input class="field" id="nm" name="nickname" type="text" autocomplete="nickname" maxlength="30" placeholder="ชื่อที่แสดงในอันดับ (ใช้ตอนสมัคร ไม่บังคับ)">
+    <input class="field" id="em" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="อีเมล เช่น name@gmail.com">
+    <input class="field" id="pw" name="password" type="password" autocomplete="current-password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)">
+    <div class="authbtns">
+      <button class="btn fill" id="login" type="button">เข้าสู่ระบบ</button>
+      <button class="btn" id="signup" type="button">สมัครสมาชิก</button>
+      <button class="btn" id="google" type="button">เข้าด้วย Google</button>
+    </div>
+    <div class="msg" id="amsg" role="status" style="color:var(--red)"></div>
+  </div>
+  <div id="in" hidden><span id="who"></span> <button class="btn" id="logout" style="margin-left:8px">ออกจากระบบ</button></div>
+</div>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+
+<div class="bins" aria-label="ถังขยะ 4 สี">
+  <div class="g"><b>เขียว</b>ขยะเปียก</div>
+  <div class="y"><b>เหลือง</b>รีไซเคิล</div>
+  <div class="b"><b>น้ำเงิน</b>ทั่วไป</div>
+  <div class="r"><b>แดง</b>อันตราย</div>
+</div>
+
+<h2>1. ถ่ายรูปขยะแล้วให้ AI วิเคราะห์</h2>
+<div class="photo">
+  <img id="prev" alt="รูปขยะที่ถ่าย">
+  <div><label class="btn" for="cam" id="camlbl" tabindex="0">ถ่ายหรือเลือกรูป</label>
+  <button class="btn fill" id="ana" disabled>วิเคราะห์รูป</button>
+  <div class="msg" id="anamsg" role="status" style="color:var(--mut)"></div></div>
+  <input id="cam" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
+</div>
+
+<h2>หรือเลือกชนิดขยะเอง</h2>
+<div class="grid" id="grid" role="group" aria-label="ชนิดขยะ"></div>
+
+<div class="res" id="res" hidden aria-live="polite">
+  <div class="head" id="head"><small>ทิ้งลงถัง</small><strong id="bin"></strong></div>
+  <div class="body">
+    <p id="why"></p>
+    <p class="tip" id="tip"></p>
+    <button class="btn fill" id="done">ทิ้งแล้ว +10 แต้ม</button>
+    <div class="msg" id="msg" role="status"></div>
+  </div>
+</div>
+
+<h2>3. ร่วมเพิ่มรูปขยะ</h2>
+<div class="box" id="up" hidden>
+  <p>ถ่ายรูปขยะที่เจอจริง เลือกชนิด แล้วอัปโหลด รูปจะถูกเก็บไว้เป็นชุดข้อมูลสำหรับสอนโมเดล (อย่าให้มีใบหน้าหรือข้อมูลส่วนตัวติดมา)</p>
+  <label for="upitem">ชนิดขยะในรูป</label>
+  <select id="upitem"></select>
+  <label class="btn" for="upfile" id="uplbl" tabindex="0">เลือกรูป</label>
+  <input id="upfile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
+  <button class="btn fill" id="upgo" disabled>อัปโหลด</button>
+  <div class="msg" id="upmsg" role="status"></div>
+</div>
+<p class="note" id="upoff">เข้าสู่ระบบก่อนจึงจะอัปโหลดรูปได้</p>
+<div class="gal" id="gal"></div>
+
+<h2>อันดับผู้ทิ้งขยะถูกถัง</h2>
+<ol class="board" id="board"><li>ยังไม่มีข้อมูล</li></ol>
+
+<p class="note">ผลจาก AI อาจคลาดเคลื่อน ถ้าไม่แน่ใจให้เลือกชนิดขยะเองจากรายการ หรือสอบถามเจ้าหน้าที่ท้องถิ่น</p>
+</main>
+
+<script>
+var BINS={g:["เขียว (ขยะเปียก)","ย่อยสลายได้ ทำปุ๋ยหมักต่อได้"],y:["เหลือง (รีไซเคิล)","นำกลับไปผลิตใหม่ได้"],b:["น้ำเงิน (ขยะทั่วไป)","รีไซเคิลยากหรือปนเปื้อน"],r:["แดง (ขยะอันตราย)","มีสารพิษ ห้ามทิ้งปนกับขยะอื่น"]};
+var ITEMS=[
+["ขวดน้ำพลาสติก","y","เทน้ำให้หมด ถอดฝาและฉลากถ้าทำได้"],
+["กระป๋องน้ำอัดลม","y","ล้างเร็วๆ แล้วบีบให้แบนเพื่อประหยัดที่"],
+["กระดาษสะอาด","y","ต้องแห้งและไม่เปื้อนอาหาร"],
+["ขวดแก้ว","y","ล้างให้สะอาด ระวังเศษแก้วแตก"],
+["เศษอาหาร","g","เทน้ำแกงทิ้งก่อน ไม่ใส่ถุงพลาสติกถ้าเป็นไปได้"],
+["เปลือกผลไม้","g","ตัดเป็นชิ้นเล็กจะย่อยเร็วขึ้น"],
+["ถุงขนม","b","ถุงฟอยล์เคลือบหลายชั้น รีไซเคิลได้ยาก"],
+["โฟมใส่อาหาร","b","เปื้อนอาหารและรีไซเคิลยาก ลดการใช้ดีที่สุด"],
+["กล่องกระดาษเปื้อนอาหาร","b","ฉีกส่วนที่สะอาดไปทิ้งถังเหลืองได้"],
+["แก้วกาแฟกระดาษ","b","ด้านในเคลือบพลาสติก เทน้ำแข็งออกก่อนทิ้ง"],
+["ถ่านไฟฉาย","r","เก็บใส่ขวดหรือกล่องแยก นำไปทิ้งที่จุดรับขยะอันตราย"],
+["หลอดไฟ","r","ห่อกระดาษกันแตก แล้วนำไปจุดรับ"],
+["กระป๋องสเปรย์","r","ใช้ให้หมดก่อน ห้ามเจาะหรือเผา"]
+];
+var pts=0,sel=null,grid=document.getElementById("grid");
+var DB=null,UID=null,UNAME="",ASSETS=null,upBlob=null;
+ITEMS.forEach(function(it,i){var b=document.createElement("button");b.className="item";b.textContent=it[0];b.setAttribute("aria-pressed","false");b.onclick=function(){pick(i)};grid.appendChild(b)});
+function pick(i){
+ sel=i;var it=ITEMS[i],k=it[1];
+ Array.prototype.forEach.call(grid.children,function(b,j){b.setAttribute("aria-pressed",j===i)});
+ document.getElementById("res").hidden=false;
+ document.getElementById("head").className="head "+k;
+ document.getElementById("bin").textContent=BINS[k][0];
+ document.getElementById("why").textContent=it[0]+": "+BINS[k][1];
+ document.getElementById("tip").textContent="เคล็ดลับ: "+it[2];
+ document.getElementById("msg").textContent="";
+ document.getElementById("done").disabled=false;
+}
+document.getElementById("done").onclick=function(){
+ var b=this,m=document.getElementById("msg");
+ if(sel===null)return;
+ if(!window.addPoint){m.style.color="var(--red)";m.textContent="ระบบบัญชียังโหลดไม่เสร็จ ลองใหม่อีกครั้ง";return}
+ b.disabled=true;m.style.color="var(--mut)";m.textContent="กำลังบันทึกแต้ม...";
+ window.addPoint().then(function(){
+  m.style.color="var(--green)";m.textContent="ทิ้งแล้ว +10 แต้ม";
+ }).catch(function(e){
+  b.disabled=false;m.style.color="var(--red)";
+  m.textContent=(e&&e.message==="login")?"เข้าสู่ระบบก่อนจึงจะเก็บแต้มได้":"บันทึกแต้มไม่สำเร็จ ตรวจ Firestore rules แล้วลองใหม่";
+ });
+};
+function show(){
+ document.getElementById("pts").textContent=pts;
+ var L=[[0,"มือใหม่",50],[50,"นักคัดแยก",150],[150,"ฮีโร่รักษ์โลก",150]],l=pts<50?0:pts<150?1:2;
+ document.getElementById("lv").textContent="ระดับ: "+L[l][1];
+ var pct=l==2?100:((pts-L[l][0])/(L[l][2]-L[l][0]))*100;
+ document.getElementById("fill").style.width=pct+"%";
+}
+
+var camBlob=null;
+function showRes(name,k,why,tip){
+ sel=-2;
+ Array.prototype.forEach.call(grid.children,function(b){b.setAttribute("aria-pressed","false")});
+ document.getElementById("res").hidden=false;
+ document.getElementById("head").className="head "+k;
+ document.getElementById("bin").textContent=BINS[k][0];
+ document.getElementById("why").textContent=name+": "+why;
+ document.getElementById("tip").textContent="เคล็ดลับ: "+tip;
+ document.getElementById("msg").textContent="";
+ document.getElementById("done").disabled=false;
+ document.getElementById("res").scrollIntoView({block:"nearest"});
+}
+function cleanResult(r){
+ if(!r||typeof r!=="object")return null;
+ return {item:String(r.item||"ขยะชิ้นนี้").slice(0,60),bin:String(r.bin||""),reason:String(r.reason||"").slice(0,200),tip:String(r.tip||"").slice(0,200)};
+}
+function applyAnalysis(r){
+ var m=document.getElementById("anamsg");r=cleanResult(r);
+ if(!r){m.textContent="วิเคราะห์ไม่สำเร็จ ลองถ่ายใหม่ หรือเลือกชนิดขยะเองด้านล่าง";return}
+ if(!BINS[r.bin]){m.textContent=(r.reason||"ดูไม่ออกว่าเป็นขยะอะไร")+" ลองถ่ายให้ใกล้และชัดขึ้น หรือเลือกชนิดขยะเอง";return}
+ m.textContent="AI ทายว่า: "+r.item;
+ showRes(r.item,r.bin,r.reason||BINS[r.bin][1],r.tip||"ถ้าไม่แน่ใจ ให้ถามเจ้าหน้าที่ท้องถิ่น");
+}
+document.getElementById("cam").onchange=function(){
+ var f=this.files&&this.files[0];if(!f)return;
+ var m=document.getElementById("anamsg"),a=document.getElementById("ana");
+ camBlob=null;a.disabled=true;m.textContent="กำลังเตรียมรูป...";
+ var r=new FileReader();
+ r.onload=function(){
+  var im=new Image();
+  im.onload=function(){
+   var pv=document.getElementById("prev");pv.src=r.result;pv.style.display="block";
+   var k=Math.min(1,768/Math.max(im.width,im.height)),c=document.createElement("canvas");
+   c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+   c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+   c.toBlob(function(b){camBlob=b;a.disabled=!b;m.textContent=b?"พร้อมวิเคราะห์":"แปลงรูปไม่สำเร็จ ลองรูปอื่น"},"image/jpeg",.8);
+  };
+  im.onerror=function(){m.textContent="เปิดรูปนี้ไม่ได้ ลองรูปอื่น"};
+  im.src=r.result;
+ };
+ r.readAsDataURL(f);
+};
+document.getElementById("ana").onclick=function(){document.getElementById("anamsg").textContent="ยังใช้ AI วิเคราะห์ไม่ได้: ต้องใส่ firebaseConfig และ deploy ฟังก์ชันตาม README ก่อน"};
+document.getElementById("camlbl").onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById("cam").click()}};
+show();
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {initializeAuth,indexedDBLocalPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,browserPopupRedirectResolver,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut,updateProfile} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,increment,collection,query,orderBy,limit,onSnapshot} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+import {getStorage,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+// วางค่าจาก Firebase Console > Project settings > Your apps > Web app
+const firebaseConfig={
+  apiKey:"AIzaSyA8kz90py6DJykeHczcpPBEIA31dXZgWEs",
+  authDomain:"waste-sorting-school.firebaseapp.com",
+  projectId:"waste-sorting-school",
+  storageBucket:"waste-sorting-school.firebasestorage.app",
+  messagingSenderId:"240246532530",
+  appId:"1:240246532530:web:1fc12f2fb691102827dcab"
+};
+const $=id=>document.getElementById(id);
+const esc=t=>{const d=document.createElement("div");d.textContent=t;return d.innerHTML};
+if(firebaseConfig.apiKey==="YOUR_API_KEY"){
+  $("amsg").textContent="ยังไม่ได้ใส่ค่า firebaseConfig ในไฟล์นี้ (ดู README)";
+  throw new Error("firebaseConfig not set");
+}
+const app=initializeApp(firebaseConfig),fns=getFunctions(app,"asia-southeast1"),db=getFirestore(app),st=getStorage(app);
+// ใช้ initializeAuth แทน getAuth: ถ้าเบราว์เซอร์ไม่มี IndexedDB/LocalStorage (เช่นเปิดจากไฟล์ในเครื่อง) จะถอยไปใช้ตัวเลือกถัดไป ไม่ค้าง
+const auth=initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence],popupRedirectResolver:browserPopupRedirectResolver});
+if(!/^https?:$/.test(location.protocol)){
+  $("amsg").textContent="หน้านี้เปิดจากไฟล์ในเครื่อง การสมัคร/เข้าสู่ระบบมักไม่ทำงาน ให้นำขึ้นเว็บ (Netlify) แล้วเปิดจากลิงก์ https";
+}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>no({code:"timeout"}),ms))]);
+let user=null,upBlob=null,unsub=[];
+
+const THAI={
+"auth/invalid-credential":"อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+"auth/wrong-password":"อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+"auth/user-not-found":"ไม่พบบัญชีนี้ ลองกดสมัครสมาชิก",
+"auth/email-already-in-use":"อีเมลนี้สมัครแล้ว ลองกดเข้าสู่ระบบ",
+"auth/weak-password":"รหัสผ่านสั้นเกินไป ใช้อย่างน้อย 6 ตัว",
+"auth/missing-password":"ยังไม่ได้กรอกรหัสผ่าน",
+"auth/missing-email":"ยังไม่ได้กรอกอีเมล",
+"auth/invalid-email":"รูปแบบอีเมลไม่ถูกต้อง ตรวจว่าพิมพ์ครบ เช่น name@gmail.com",
+"auth/operation-not-allowed":"ยังไม่ได้เปิดวิธีเข้าสู่ระบบนี้ใน Firebase: Authentication > Sign-in method > เปิด Email/Password",
+"auth/configuration-not-found":"ยังไม่ได้เปิด Authentication ใน Firebase: กด Get started ในเมนู Authentication ก่อน",
+"auth/unauthorized-domain":"โดเมนนี้ยังไม่ได้รับอนุญาต: เพิ่มใน Authentication > Settings > Authorized domains",
+"auth/invalid-api-key":"apiKey ไม่ถูกต้อง ตรวจค่าใน index.html",
+"auth/api-key-not-valid.-please-pass-a-valid-api-key.":"apiKey ไม่ถูกต้อง ตรวจค่าใน index.html",
+"timeout":"ไม่มีการตอบกลับจาก Firebase ภายใน 15 วินาที ตรวจอินเทอร์เน็ต และให้เปิดหน้านี้จากลิงก์เว็บ https (ไม่ใช่ไฟล์ในเครื่อง)",
+"auth/network-request-failed":"เชื่อมต่อเครือข่ายไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่",
+"auth/too-many-requests":"ลองบ่อยเกินไป รอสักครู่แล้วลองใหม่",
+"auth/popup-closed-by-user":"ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ",
+"auth/popup-blocked":"เบราว์เซอร์บล็อกหน้าต่างป๊อปอัป อนุญาตป๊อปอัปแล้วลองใหม่",
+"auth/operation-not-supported-in-this-environment":"เปิดหน้านี้จากไฟล์ในเครื่องไม่ได้ ต้องนำขึ้นเว็บก่อน (Netlify)"
+};
+const fail=e=>{
+  const c=(e&&e.code)||"unknown";
+  $("amsg").textContent=(THAI[c]||"เข้าสู่ระบบไม่สำเร็จ")+" ["+c+"]";
+  console.error(e);
+};
+
+// อ่านค่าจากฟอร์ม: ตัดช่องว่าง/อักขระล่องหน และแปลงอักขระเต็มความกว้างให้เป็นปกติ
+function readForm(){
+  const clean=s=>String(s||"").replace(/[\u200B-\u200D\uFEFF]/g,"").normalize("NFKC");
+  return {email:clean($("em").value).trim(),pw:String($("pw").value||"")};
+}
+// ตรวจก่อนส่งให้ Firebase; คืนข้อความผิดพลาด หรือ null ถ้าผ่าน
+function checkForm(f,isSignup){
+  if(!f.email){$("em").focus();return "ยังไม่ได้กรอกอีเมล"}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)){$("em").focus();return "รูปแบบอีเมลไม่ถูกต้อง ตรวจว่าพิมพ์ครบ เช่น name@gmail.com"}
+  if(!f.pw){$("pw").focus();return "ยังไม่ได้กรอกรหัสผ่าน"}
+  if(isSignup&&f.pw.length<6){$("pw").focus();return "รหัสผ่านสั้นเกินไป ใช้อย่างน้อย 6 ตัว"}
+  return null;
+}
+const busy=on=>["login","signup","google"].forEach(id=>$(id).disabled=on);
+async function doAuth(isSignup){
+  const f=readForm(),err=checkForm(f,isSignup);
+  if(err){$("amsg").textContent=err;return}
+  $("amsg").textContent=isSignup?"กำลังสมัคร...":"กำลังเข้าสู่ระบบ...";
+  busy(true);
+  try{
+    if(isSignup){
+      const cred=await withTimeout(createUserWithEmailAndPassword(auth,f.email,f.pw),15000);
+      const nm=($("nm").value||"").trim().slice(0,30)||f.email.split("@")[0];
+      try{await updateProfile(cred.user,{displayName:nm})}catch(_){}
+      try{await setDoc(doc(db,"users",cred.user.uid),{name:nm,pts:0})}catch(_){}
+      $("who").textContent="เข้าสู่ระบบแล้ว: "+nm;
+    }else{
+      await withTimeout(signInWithEmailAndPassword(auth,f.email,f.pw),15000);
+    }
+  }catch(e){fail(e)}
+  busy(false);
+}
+$("login").onclick=()=>doAuth(false);
+$("signup").onclick=()=>doAuth(true);
+$("pw").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();doAuth(false)}});
+$("google").onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(fail);
+$("logout").onclick=()=>signOut(auth);
+
+// เพิ่มแต้มเข้าบัญชีที่ล็อกอินอยู่ (บันทึกบน Firestore, ไม่เก็บแต้มถ้ายังไม่ล็อกอิน)
+window.addPoint=async function(){
+  if(!user)throw new Error("login");
+  await setDoc(doc(db,"users",user.uid),{name:user.displayName||user.email.split("@")[0],pts:increment(10)},{merge:true});
+};
+
+const classify=httpsCallable(fns,"classify");
+const toB64=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=no;r.readAsDataURL(b)});
+$("ana").onclick=async function(){
+  const m=$("anamsg");
+  if(!window.camBlob)return;
+  if(!user){m.textContent="เข้าสู่ระบบก่อนจึงจะใช้ AI วิเคราะห์รูปได้";return}
+  this.disabled=true;m.textContent="AI กำลังดูรูป...";
+  try{
+    const res=await classify({image:await toB64(window.camBlob)});
+    window.applyAnalysis(res.data);
+  }catch(e){
+    m.textContent=(e&&e.code==="functions/resource-exhausted")?"วันนี้ใช้ครบโควตาแล้ว ลองใหม่พรุ่งนี้":"วิเคราะห์ไม่สำเร็จ ลองใหม่อีกครั้ง";
+  }
+  this.disabled=false;
+};
+
+onAuthStateChanged(auth,async u=>{
+  user=u;unsub.forEach(f=>f());unsub=[];
+  $("out").hidden=!!u;$("in").hidden=!u;$("amsg").textContent="";
+  $("up").hidden=!u;$("upoff").hidden=!!u;
+  if(!u){window.pts=0;show();$("gal").innerHTML="";return}
+  $("who").textContent="เข้าสู่ระบบแล้ว: "+(u.displayName||u.email);
+  // แต้มของบัญชีนี้ ดึงและอัปเดตสดจาก Firestore
+  unsub.push(onSnapshot(doc(db,"users",u.uid),s=>{
+    const p=s.exists()?s.data().pts:0;
+    window.pts=(typeof p==="number")?p:0;show();
+  },()=>{}));
+  unsub.push(onSnapshot(query(collection(db,"photos"),orderBy("ts","desc"),limit(24)),s=>{
+    const g=$("gal");g.innerHTML="";
+    s.docs.forEach(d=>{const x=d.data();if(!x.url)return;
+      const f=document.createElement("figure"),i=document.createElement("img");
+      i.src=x.url;i.alt=x.item||"รูปขยะ";i.loading="lazy";
+      const c=document.createElement("figcaption");c.textContent=(x.item||"")+" โดย "+(x.by||"ผู้ใช้");
+      f.append(i,c);g.appendChild(f)});
+  },()=>{}));
+  unsub.push(onSnapshot(query(collection(db,"users"),orderBy("pts","desc"),limit(5)),s=>{
+    const o=$("board");
+    o.innerHTML=s.empty?"<li>ยังไม่มีข้อมูล</li>":s.docs.map(d=>{const x=d.data();return "<li>"+esc(String(x.name||"ผู้ใช้"))+": "+(parseInt(x.pts,10)||0)+" แต้ม</li>"}).join("");
+  },()=>{}));
+});
+
+const sel2=$("upitem");
+ITEMS.forEach((it,i)=>{const o=document.createElement("option");o.value=i;o.textContent=it[0];sel2.appendChild(o)});
+$("uplbl").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("upfile").click()}};
+$("upfile").onchange=function(){
+  const f=this.files&&this.files[0];if(!f)return;
+  $("upmsg").textContent="กำลังเตรียมรูป...";
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement("canvas");
+      c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      c.toBlob(b=>{upBlob=b;$("upgo").disabled=!b;$("upmsg").textContent=b?"พร้อมอัปโหลด":"แปลงรูปไม่สำเร็จ ลองรูปอื่น"},"image/jpeg",.8);
+    };
+    im.onerror=()=>{$("upmsg").textContent="เปิดรูปนี้ไม่ได้ ลองรูปอื่น"};
+    im.src=r.result;
+  };
+  r.readAsDataURL(f);
+};
+$("upgo").onclick=async function(){
+  if(!upBlob||!user)return;
+  this.disabled=true;$("upmsg").textContent="กำลังอัปโหลด...";
+  const it=ITEMS[parseInt(sel2.value,10)];
+  try{
+    const r=ref(st,"photos/"+user.uid+"/"+Date.now()+".jpg");
+    await uploadBytes(r,upBlob,{contentType:"image/jpeg"});
+    const url=await getDownloadURL(r);
+    await addDoc(collection(db,"photos"),{url,item:it[0],bin:it[1],by:user.displayName||user.email.split("@")[0],uid:user.uid,ts:Date.now()});
+    $("upmsg").textContent="อัปโหลดแล้ว ขอบคุณที่ช่วยเพิ่มข้อมูล";upBlob=null;$("upfile").value="";
+  }catch(e){$("upmsg").textContent="อัปโหลดไม่สำเร็จ ลองใหม่อีกครั้ง";this.disabled=false}
+};
+</script>
+</body>
+</html>
